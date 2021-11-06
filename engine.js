@@ -28,16 +28,37 @@ const outOfBounds = (x, y, grid) => {
   return x >= grid.size[0] || y >= grid.size[1] || x < 0 || y < 0;
 }
 
+const wrapAround = (x,y, grid) => {
+  if(outOfBounds(x,y,grid)){
+    const correct = [x,y];
+    if (x < 0){
+      correct[0] = grid.size[0] - 1;
+    } else if (x > grid.size[0] - 1){
+      correct[0] = 0
+    }
+
+    if (y < 0){
+      correct[1] = grid.size[1] - 1;
+    } else if (y > grid.size[1] - 1){
+      correct[1] = 0
+    }
+
+    return correct;
+  } else {
+    return [x,y];
+  }
+}
+
 const adjacent = (x, y, grid) => {
   // TODO: Make this less ugly
   const indices = cartesian([x - 1, x, x + 1],[y - 1, y, y + 1]);
 
   const isNotSelf = i => !(i[0] == x && i[1] == y);
-  const inBounds = i => !outOfBounds(i[0],i[1],grid);
+  const inBounds = i => wrapAround(i[0], i[1], grid);
 
-  const neighbors = indices.filter(i => inBounds(i) && isNotSelf(i));
-  const active = neighbors.map(i => activeAt(i[0],i[1],grid));
-  return active.reduce((x,y)=>x+y);
+  const neighbors = _.map(_.filter(indices, isNotSelf), inBounds);
+  const active = neighbors.map(i => activeAt(i[0], i[1], grid));
+  return active.reduce((x,y) => x+y);
 }
 
 const adjust = (x, y, current, future) => {

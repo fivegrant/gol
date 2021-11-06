@@ -34,9 +34,7 @@ const render = () => {
   canvas.width = grid.size[0] * CELLSIZE;
   canvas.height = grid.size[1] * CELLSIZE;
   
-  setInterval(draw,500);
-  //ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //draw(grid);
+  setInterval(draw,50);
 }
 
 render();

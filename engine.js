@@ -95,6 +95,6 @@ const customGrid = layout => {
   return new Grid(config);
 }
 
+const flipCell = (x, y, grid) => alter(x, y, !activeAt(x, y, grid), grid);
 
-
-export { emptyGrid, customGrid, step, alter, activeAt};
+export { emptyGrid, customGrid, step, flipCell, activeAt};

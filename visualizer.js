@@ -1,12 +1,12 @@
-import { emptyGrid, customGrid, step, alter, activeAt } from "/engine.js"
+import { emptyGrid, customGrid, step, flipCell, activeAt } from "/engine.js"
 
 const ALIVE = 'rgb(0,0,200)';
+const REVERSE_ALIVE = 'rgb(200,0,0)';
 const DEAD = 'rgb(255,255,255)';
-const CELLSIZE = 20;
+const CELLSIZE = 13;
 var HISTORY = [];
 var PAUSE = false;
 var REVERSE = false;
-var TIME = null;
 
 const defaultGrid = await fetch("/default.txt")
                            .then(file => file.text());
@@ -14,61 +14,72 @@ const defaultGrid = await fetch("/default.txt")
 // Create Keybindings
 const detect = e => {
   switch(e.code){
-    case("Space"):
+    case("KeyS"):
       PAUSE = !PAUSE;
       break;
-    case("KeyZ"):
+    case("KeyA"):
       REVERSE = true;
       break;
-    case("KeyX"):
+    case("KeyD"):
       REVERSE = false;
       break;
   }
 }
-document.onkeydown = detect;
+
+const toggle = e => {
+    console.log("yumm");
+    const [x,y] = [Math.floor(e.clientX / 13), Math.floor(e.clientY / 13)];
+    const time = HISTORY.length - 1;
+    HISTORY[time] = flipCell(x, y, HISTORY[time])
+    const canvas = document.getElementById('grid')
+    fill(HISTORY[time], canvas.getContext('2d'));
+};
 
 
-const draw = () => {
-  // Make sure not to travel back to far in time
-  if(TIME < 0){PAUSE = true; REVERSE = false; TIME = 0;}; 
-
-  if(!PAUSE){
-    const grid = HISTORY[TIME];
-    const ctx = document.getElementById('grid').getContext('2d');
+const fill = (grid, ctx) => {
     for(var i = 0; i < grid.size[0]; i++){
       for(var j = 0; j < grid.size[1]; j++){
-        if (activeAt(i,j, grid)){ //should use grid.cell instead
-          ctx.fillStyle = ALIVE;
+        if (activeAt(i,j, grid)){
+          ctx.fillStyle = !REVERSE ? ALIVE : REVERSE_ALIVE;
         } else {
           ctx.fillStyle = DEAD;
         }
         ctx.fillRect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
       }
     }
+}
+
+const draw = () => {
+  if(!PAUSE){
+    const time = HISTORY.length - 1;
+    const canvas = document.getElementById('grid');
+    const ctx = canvas.getContext('2d');
+    fill(HISTORY[time], ctx);
     if(!REVERSE){
-      if(TIME == HISTORY.length - 1){
-        HISTORY.push(step(grid));
-        TIME = HISTORY.length - 1;
-      } else {
-        TIME++
-      }
+      HISTORY.push(step(HISTORY[time]));
+    } else if(time > 1) {
+      HISTORY.pop();
     } else {
-      TIME--;
+      // Make sure not to travel back to far in time
+      HISTORY.pop();
+      PAUSE = true;
+      REVERSE = false; 
+      fill(HISTORY[0], ctx);
     }
   }
 }
 
-
 const render = () => {
   HISTORY = [customGrid(defaultGrid)];
   const grid = HISTORY[0];
-  TIME = 0;
 
   var canvas = document.getElementById('grid');
   var ctx = canvas.getContext('2d');
   canvas.width = grid.size[0] * CELLSIZE;
   canvas.height = grid.size[1] * CELLSIZE;
   
+  document.onkeydown = detect;
+  canvas.onclick = toggle
   setInterval(draw,50);
 }
 

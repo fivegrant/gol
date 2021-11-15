@@ -23,11 +23,13 @@ const detect = e => {
     case("KeyD"):
       REVERSE = false;
       break;
+    case("KeyW"):
+      draw(true);
+      break;
   }
 }
 
 const toggle = e => {
-    console.log("yumm");
     const [x,y] = [Math.floor(e.clientX / 13), Math.floor(e.clientY / 13)];
     const time = HISTORY.length - 1;
     HISTORY[time] = flipCell(x, y, HISTORY[time])
@@ -49,8 +51,8 @@ const fill = (grid, ctx) => {
     }
 }
 
-const draw = () => {
-  if(!PAUSE){
+const draw = (bypass = false) => {
+  if(bypass || !PAUSE){
     const time = HISTORY.length - 1;
     const canvas = document.getElementById('grid');
     const ctx = canvas.getContext('2d');

@@ -15,7 +15,7 @@ var HISTORY = [];
 var PAUSE = false;
 var REVERSE = false;
 
-const defaultGrid = await fetch("/layouts/default.txt")
+const defaultGrid = await fetch("/gol/layouts/default.txt")
                            .then(file => file.text());
 
 // Creates Keybindings

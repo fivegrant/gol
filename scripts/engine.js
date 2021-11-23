@@ -3,7 +3,7 @@
  */
 
 
-import { pairEqual, pairExists, uniquePairs, range, cartesian } from "/scripts/helpers.js"
+import { pairEqual, pairExists, uniquePairs, range, cartesian } from "/gol/scripts/helpers.js"
 
 // Initialize function object
 function Grid(state) {

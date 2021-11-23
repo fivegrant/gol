@@ -2,7 +2,7 @@
  * visualizer.js - Draws cellular automata to the browser.
  */
 
-import { emptyGrid, customGrid, step, flipCell, activeAt } from "/scripts/engine.js"
+import { emptyGrid, customGrid, step, flipCell, activeAt } from "/gol/scripts/engine.js"
 
 // Configure
 const ALIVE = 'rgb(0,0,200)';

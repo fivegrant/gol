@@ -1,32 +1,43 @@
 /**
- * engine.js
+ * engine.js - Handles logic for cellular automata.
  */
 
 
-import { range, cartesian } from "/scripts/helpers.js"
+import { pairEqual, pairExists, uniquePairs, range, cartesian } from "/scripts/helpers.js"
 
+// Initialize function object
 function Grid(state) {
-  this.state = state;
-  if (!this.state.every(x => x.length === this.state[0].length)){
-    return new Error("Improper Size!");
+  if (!state.every(x => x.length === state[0].length)){
+    return new Error("Improper Shape!");
   }
-  this.size = [this.state[0].length, this.state.length]; // x and y
+  this.size = [state[0].length, state.length]; // x and y
+  this.state = cartesian(range(this.size[0]), range(this.size[1])).filter( 
+    a => state[a[1]][a[0]] == "1");
 }
 
+// Check if a cell is alive
 const activeAt = (x, y, grid) => {
-  return grid.state[y][x];
+  return pairExists(x, y, grid.state); 
 }
 
+// Change the status of a single cell
 const alter = (x, y, value, grid) => {
-  const altered = JSON.parse(JSON.stringify(grid)); 
-  altered.state[y][x] = value;
-  return altered
+  if(activeAt(x,y,grid) == value){
+    return grid;
+  } 
+  else { 
+    const altered = JSON.parse(JSON.stringify(grid)); 
+    altered.state = !value ? altered.state.filter(b => !pairEqual([x,y],b))
+                           : altered.state.concat([[x,y]])
+    return altered;
+  }
 }
 
 const outOfBounds = (x, y, grid) => {
   return x >= grid.size[0] || y >= grid.size[1] || x < 0 || y < 0;
 }
 
+// Rewrites coordinates if they are out of bounds
 const wrapAround = (x,y, grid) => {
   if(outOfBounds(x,y,grid)){
     const correct = [x,y];
@@ -41,27 +52,27 @@ const wrapAround = (x,y, grid) => {
     } else if (y > grid.size[1] - 1){
       correct[1] = 0
     }
-
     return correct;
   } else {
     return [x,y];
   }
 }
 
-const adjacent = (x, y, grid) => {
-  // TODO: Make this less ugly
+const neighbors = (x, y, grid) => {
   const indices = cartesian([x - 1, x, x + 1],[y - 1, y, y + 1]);
-
   const isNotSelf = i => !(i[0] == x && i[1] == y);
   const inBounds = i => wrapAround(i[0], i[1], grid);
+  return indices.filter(isNotSelf).map(inBounds);
+}
 
-  const neighbors = indices.filter(isNotSelf).map(inBounds);
-  const active = neighbors.map(i => activeAt(i[0], i[1], grid));
+const next = (x, y, grid) => {
+  const adjacent = neighbors(x, y, grid);
+  const active = adjacent.map(i => activeAt(i[0], i[1], grid));
   return active.reduce((x,y) => x+y);
 }
 
 const adjust = (x, y, current, future) => {
- const activeCount = adjacent(x, y, current)
+ const activeCount = next(x, y, current)
  if (activeCount == 3){
    return alter(x, y, true, future);
  } else if (activeCount == 2){
@@ -71,12 +82,24 @@ const adjust = (x, y, current, future) => {
  }
 }
 
+/** Move forward one 
+ *
+ */
 const step = grid => {
-  const remaining = cartesian(range(grid.size[0]), range(grid.size[1]));
-  const apply = (grids, i) => [grids[0], adjust(i[0],i[1],grids[0],grids[1])];
-  return remaining.reduce(apply, [grid, emptyGrid(grid.size[0],grid.size[1])])[1];
+  const possible = grid.state.concat(grid.state.map(
+     a => neighbors(a[0],a[1],grid)).flat())
+  const remaining = uniquePairs(possible);
+  const apply = (grids, i) => [grids[0], adjust(i[0], i[1], grids[0], grids[1])];
+  return remaining.reduce(  apply, 
+                            [grid, emptyGrid(
+			             grid.size[0],grid.size[1]
+			 	   )
+			    ]
+			 )[1]; // Only return the grid, not the empty grid list
 }
 
+/** Creates an empty grid.
+  */
 const emptyGrid = (x,y) => {
   const state = [];
   for(var i = 0; i < y; i++){
@@ -85,6 +108,9 @@ const emptyGrid = (x,y) => {
   return new Grid(state);
 }
 
+/** Takes a string where the rows are separated by newlines
+  * and columns are separated by spaces.
+  */
 const customGrid = layout => {
   const rows = layout.split('\n').filter(x => x != "");
   if (!rows.every(x => x.length === rows[0].length)){

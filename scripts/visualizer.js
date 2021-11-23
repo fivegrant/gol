@@ -1,5 +1,5 @@
 /**
- * visualizer.js
+ * visualizer.js - Draws cellular automata to the browser.
  */
 
 import { emptyGrid, customGrid, step, flipCell, activeAt } from "/scripts/engine.js"
@@ -18,29 +18,31 @@ const defaultGrid = await fetch("/layouts/default.txt")
 // Create Keybindings
 const detect = e => {
   switch(e.code){
-    case("KeyS"):
+    case("KeyS"):     // Pause
       PAUSE = !PAUSE;
       break;
-    case("KeyA"):
+    case("KeyA"):     // Move Backward
       REVERSE = true;
       break;
-    case("KeyD"):
+    case("KeyD"):     // Move Forward
       REVERSE = false;
       break;
-    case("KeyW"):
+    case("KeyW"):    // Step forward
       draw(true);
       break;
   }
 }
 
 const toggle = e => {
-    const canvas = document.getElementById('grid')
-    const pixelX = e.clientX - canvas.offsetLeft;
-    const pixelY = e.clientY - canvas.offsetTop;
-    const [x,y] = [Math.floor(pixelX / 13), Math.floor(pixelY / 13)];
-    const time = HISTORY.length - 1;
-    HISTORY[time] = flipCell(x, y, HISTORY[time])
-    fill(HISTORY[time], canvas.getContext('2d'));
+    if(PAUSE){
+     const canvas = document.getElementById('grid')
+     const pixelX = e.clientX - canvas.offsetLeft;
+     const pixelY = e.clientY - canvas.offsetTop;
+     const [x,y] = [Math.floor(pixelX / 13), Math.floor(pixelY / 13)];
+     const time = HISTORY.length - 1;
+     HISTORY[time] = flipCell(x, y, HISTORY[time])
+     fill(HISTORY[time], canvas.getContext('2d'));
+    }
 };
 
 
@@ -59,21 +61,23 @@ const fill = (grid, ctx) => {
 
 const draw = (bypass = false) => {
   if(bypass || !PAUSE){
-    const time = HISTORY.length - 1;
+    var time = HISTORY.length - 1;
     const canvas = document.getElementById('grid');
     const ctx = canvas.getContext('2d');
-    fill(HISTORY[time], ctx);
     if(!REVERSE){
       HISTORY.push(step(HISTORY[time]));
+      time++;
     } else if(time > 1) {
       HISTORY.pop();
+      time--;
     } else {
-      // Make sure not to travel back to far in time
+      // Make sure not to travel back too far in time
       HISTORY.pop();
       PAUSE = true;
       REVERSE = false; 
-      fill(HISTORY[0], ctx);
+      time=0
     }
+    fill(HISTORY[time], ctx);
   }
 }
 
@@ -88,9 +92,11 @@ const render = () => {
   
   document.onkeydown = detect;
   canvas.onclick = toggle
+  fill(grid,ctx);
   setInterval(draw,50);
 }
 
+// Wait to start rendering until DOM elements exist
 while(document.getElementById('grid') === null){
   continue;
 }

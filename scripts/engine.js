@@ -46,7 +46,6 @@ const wrapAround = (x,y, grid) => {
     } else if (x > grid.size[0] - 1){
       correct[0] = 0
     }
-
     if (y < 0){
       correct[1] = grid.size[1] - 1;
     } else if (y > grid.size[1] - 1){
@@ -58,6 +57,7 @@ const wrapAround = (x,y, grid) => {
   }
 }
 
+// Provides a list of all neighboring cell coordinates
 const neighbors = (x, y, grid) => {
   const indices = cartesian([x - 1, x, x + 1],[y - 1, y, y + 1]);
   const isNotSelf = i => !(i[0] == x && i[1] == y);
@@ -65,12 +65,16 @@ const neighbors = (x, y, grid) => {
   return indices.filter(isNotSelf).map(inBounds);
 }
 
+// Indicates the amount of living neighbors 
 const next = (x, y, grid) => {
   const adjacent = neighbors(x, y, grid);
   const active = adjacent.map(i => activeAt(i[0], i[1], grid));
   return active.reduce((x,y) => x+y);
 }
 
+/* Plots the cell corresponding on the future grid given information
+ * given information about the current grid.
+ */
 const adjust = (x, y, current, future) => {
  const activeCount = next(x, y, current)
  if (activeCount == 3){
@@ -82,9 +86,7 @@ const adjust = (x, y, current, future) => {
  }
 }
 
-/** Move forward one 
- *
- */
+// Provides the next grid.
 const step = grid => {
   const possible = grid.state.concat(grid.state.map(
      a => neighbors(a[0],a[1],grid)).flat())
@@ -98,8 +100,7 @@ const step = grid => {
 			 )[1]; // Only return the grid, not the empty grid list
 }
 
-/** Creates an empty grid.
-  */
+// Creates an empty grid.
 const emptyGrid = (x,y) => {
   const state = [];
   for(var i = 0; i < y; i++){
@@ -120,6 +121,7 @@ const customGrid = layout => {
   return new Grid(config);
 }
 
+// Toggles the status of a cell
 const flipCell = (x, y, grid) => alter(x, y, !activeAt(x, y, grid), grid);
 
 export { emptyGrid, customGrid, step, flipCell, activeAt};

@@ -1,6 +1,17 @@
 # Game of Life (GOL)
 
 ## Usage
+- **S Key:** Pause
+- **A Key:** Move Backward
+    - Once the beginning state is reached, the simulation
+      is switched forward and paused.
+- **D Key:** Move Forward
+- **W Key:** Step Forward
+- **Mouse Click**: Flip Cell
+    - Note that each cell must be flipped individually. Flipping
+      cells is most effective when the simulation is paused.
+
+### Running GOL
 The project is a static site so any http server that serves
 the `index.html` will do. I use and personally recommend 
 [simple-http-server](https://github.com/TheWaWaR/simple-http-server).

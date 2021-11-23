@@ -4,10 +4,13 @@
 
 import { emptyGrid, customGrid, step, flipCell, activeAt } from "/scripts/engine.js"
 
+// Configure
 const ALIVE = 'rgb(0,0,200)';
 const REVERSE_ALIVE = 'rgb(200,0,0)';
 const DEAD = 'rgb(255,255,255)';
 const CELLSIZE = 13;
+
+// Declare state
 var HISTORY = [];
 var PAUSE = false;
 var REVERSE = false;
@@ -15,7 +18,7 @@ var REVERSE = false;
 const defaultGrid = await fetch("/layouts/default.txt")
                            .then(file => file.text());
 
-// Create Keybindings
+// Creates Keybindings
 const detect = e => {
   switch(e.code){
     case("KeyS"):     // Pause
@@ -33,19 +36,24 @@ const detect = e => {
   }
 }
 
+// Enables cell flipping with cursor
 const toggle = e => {
-    if(PAUSE){
-     const canvas = document.getElementById('grid')
-     const pixelX = e.clientX - canvas.offsetLeft;
-     const pixelY = e.clientY - canvas.offsetTop;
-     const [x,y] = [Math.floor(pixelX / 13), Math.floor(pixelY / 13)];
-     const time = HISTORY.length - 1;
-     HISTORY[time] = flipCell(x, y, HISTORY[time])
-     fill(HISTORY[time], canvas.getContext('2d'));
-    }
+   // Get the cursor coordinates relative to the canvas tag.
+   const canvas = document.getElementById('grid')
+   const pixelX = e.clientX - canvas.offsetLeft;
+   const pixelY = e.clientY - canvas.offsetTop;
+
+   // Figure out which cell the picked pixel lands in 
+   const [x,y] = [Math.floor(pixelX / 13), Math.floor(pixelY / 13)];
+
+   // Alter then redraw current state
+   const time = HISTORY.length - 1;
+   HISTORY[time] = flipCell(x, y, HISTORY[time]);
+   fill(HISTORY[time], canvas.getContext('2d'));
 };
 
 
+// Paints a given board state to the screen.
 const fill = (grid, ctx) => {
     for(var i = 0; i < grid.size[0]; i++){
       for(var j = 0; j < grid.size[1]; j++){
@@ -59,15 +67,16 @@ const fill = (grid, ctx) => {
     }
 }
 
+// Steps forward one then draws
 const draw = (bypass = false) => {
   if(bypass || !PAUSE){
     var time = HISTORY.length - 1;
     const canvas = document.getElementById('grid');
     const ctx = canvas.getContext('2d');
-    if(!REVERSE){
+    if(!REVERSE){ // Move forward in time
       HISTORY.push(step(HISTORY[time]));
       time++;
-    } else if(time > 1) {
+    } else if(time > 1) { // Move backward in time
       HISTORY.pop();
       time--;
     } else {
@@ -81,6 +90,7 @@ const draw = (bypass = false) => {
   }
 }
 
+// Initializes canvas, then continously calls the `draw` function
 const render = () => {
   HISTORY = [customGrid(defaultGrid)];
   const grid = HISTORY[0];
@@ -90,9 +100,12 @@ const render = () => {
   canvas.width = grid.size[0] * CELLSIZE;
   canvas.height = grid.size[1] * CELLSIZE;
   
+  // Enable listeners
   document.onkeydown = detect;
   canvas.onclick = toggle
-  fill(grid,ctx);
+
+  fill(grid,ctx); // Draw initial state
+
   setInterval(draw,50);
 }
 

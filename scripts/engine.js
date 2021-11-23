@@ -3,7 +3,7 @@
  */
 
 
-import { range, cartesian } from "/helpers.js"
+import { range, cartesian } from "/scripts/helpers.js"
 
 function Grid(state) {
   this.state = state;

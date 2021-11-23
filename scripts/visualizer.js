@@ -2,7 +2,7 @@
  * visualizer.js
  */
 
-import { emptyGrid, customGrid, step, flipCell, activeAt } from "/engine.js"
+import { emptyGrid, customGrid, step, flipCell, activeAt } from "/scripts/engine.js"
 
 const ALIVE = 'rgb(0,0,200)';
 const REVERSE_ALIVE = 'rgb(200,0,0)';
@@ -12,7 +12,7 @@ var HISTORY = [];
 var PAUSE = false;
 var REVERSE = false;
 
-const defaultGrid = await fetch("/default.txt")
+const defaultGrid = await fetch("/layouts/default.txt")
                            .then(file => file.text());
 
 // Create Keybindings
@@ -34,10 +34,12 @@ const detect = e => {
 }
 
 const toggle = e => {
-    const [x,y] = [Math.floor(e.clientX / 13), Math.floor(e.clientY / 13)];
+    const canvas = document.getElementById('grid')
+    const pixelX = e.clientX - canvas.offsetLeft;
+    const pixelY = e.clientY - canvas.offsetTop;
+    const [x,y] = [Math.floor(pixelX / 13), Math.floor(pixelY / 13)];
     const time = HISTORY.length - 1;
     HISTORY[time] = flipCell(x, y, HISTORY[time])
-    const canvas = document.getElementById('grid')
     fill(HISTORY[time], canvas.getContext('2d'));
 };
 
@@ -87,6 +89,10 @@ const render = () => {
   document.onkeydown = detect;
   canvas.onclick = toggle
   setInterval(draw,50);
+}
+
+while(document.getElementById('grid') === null){
+  continue;
 }
 
 render();

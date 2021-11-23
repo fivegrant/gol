@@ -1,13 +1,13 @@
-import * as _ from 'https://pagecdn.io/lib/underscore/1.13.1/underscore-esm-min.js';
+/**
+ * engine.js
+ */
 
-const cartesian = (xs, ys) => {
-  const prepends = y => _.map(_.map(xs, x => (y => [x,y])), f => f(y));
-  return _.flatten(_.map(ys, prepends), 1);
-}
+
+import { range, cartesian } from "/helpers.js"
 
 function Grid(state) {
   this.state = state;
-  if (!_.every(this.state, x => x.length === this.state[0].length)){
+  if (!this.state.every(x => x.length === this.state[0].length)){
     return new Error("Improper Size!");
   }
   this.size = [this.state[0].length, this.state.length]; // x and y
@@ -16,7 +16,6 @@ function Grid(state) {
 const activeAt = (x, y, grid) => {
   return grid.state[y][x];
 }
-
 
 const alter = (x, y, value, grid) => {
   const altered = JSON.parse(JSON.stringify(grid)); 
@@ -56,7 +55,7 @@ const adjacent = (x, y, grid) => {
   const isNotSelf = i => !(i[0] == x && i[1] == y);
   const inBounds = i => wrapAround(i[0], i[1], grid);
 
-  const neighbors = _.map(_.filter(indices, isNotSelf), inBounds);
+  const neighbors = indices.filter(isNotSelf).map(inBounds);
   const active = neighbors.map(i => activeAt(i[0], i[1], grid));
   return active.reduce((x,y) => x+y);
 }
@@ -73,9 +72,9 @@ const adjust = (x, y, current, future) => {
 }
 
 const step = grid => {
-  const remaining = cartesian(_.range(grid.size[0]), _.range(grid.size[1]));
+  const remaining = cartesian(range(grid.size[0]), range(grid.size[1]));
   const apply = (grids, i) => [grids[0], adjust(i[0],i[1],grids[0],grids[1])];
-  return _.reduce(remaining, apply, [grid, emptyGrid(grid.size[0],grid.size[1])])[1];
+  return remaining.reduce(apply, [grid, emptyGrid(grid.size[0],grid.size[1])])[1];
 }
 
 const emptyGrid = (x,y) => {
@@ -87,8 +86,8 @@ const emptyGrid = (x,y) => {
 }
 
 const customGrid = layout => {
-  const rows = _.filter(layout.split('\n'), x => x != "");
-  if (!_.every(rows, x => _.isEqual(x.length, rows[0].length))){
+  const rows = layout.split('\n').filter(x => x != "");
+  if (!rows.every(x => x.length === rows[0].length)){
     return new Error("String Config is not rectangular!");
   }
   const config = rows.map(x => x.split("").map(x => "0" !== x));

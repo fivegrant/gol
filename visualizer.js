@@ -1,3 +1,7 @@
+/**
+ * visualizer.js
+ */
+
 import { emptyGrid, customGrid, step, flipCell, activeAt } from "/engine.js"
 
 const ALIVE = 'rgb(0,0,200)';
